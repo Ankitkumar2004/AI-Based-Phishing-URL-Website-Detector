@@ -1,0 +1,174 @@
+{
+  "model": "RandomForestClassifier",
+  "trained_at": "2026-10-04T18:56:01.197628",
+  "random_seed": 42,
+  "dataset_split": "80% Train, 20% Test (Stratified)",
+  "training_samples": 8000,
+  "test_samples": 2000,
+  "total_samples": 10000,
+  "total_features": 45,
+  "feature_columns": [
+    "url_length",
+    "hostname_length",
+    "path_length",
+    "query_length",
+    "number_of_dots",
+    "number_of_hyphens",
+    "number_of_underscores",
+    "number_of_slashes",
+    "number_of_question_marks",
+    "number_of_equal_signs",
+    "number_of_at_symbols",
+    "number_of_ampersands",
+    "number_of_percent_symbols",
+    "number_of_digits",
+    "digit_ratio",
+    "special_character_count",
+    "suspicious_char_ratio",
+    "has_ip_address",
+    "hostname_present",
+    "subdomain_count",
+    "domain_length",
+    "has_https",
+    "has_http",
+    "suspicious_port",
+    "unusual_tld",
+    "is_shortened_url",
+    "has_punycode",
+    "excessive_subdomains",
+    "hostname_entropy",
+    "total_suspicious_keywords",
+    "kw_login",
+    "kw_signin",
+    "kw_verify",
+    "kw_verification",
+    "kw_account",
+    "kw_secure",
+    "kw_update",
+    "kw_password",
+    "kw_bank",
+    "kw_wallet",
+    "kw_confirm",
+    "kw_authentication",
+    "kw_free",
+    "kw_bonus",
+    "kw_claim"
+  ],
+  "accuracy": 0.994,
+  "precision": 0.994,
+  "recall": 0.994,
+  "f1_score": 0.994,
+  "roc_auc": 0.999,
+  "phishing_metrics": {
+    "precision": 0.999,
+    "recall": 0.989,
+    "f1_score": 0.994
+  },
+  "legitimate_metrics": {
+    "precision": 0.9891,
+    "recall": 0.999,
+    "f1_score": 0.994
+  },
+  "confusion_matrix": {
+    "matrix": [
+      [
+        999,
+        1
+      ],
+      [
+        11,
+        989
+      ]
+    ],
+    "true_negatives": 999,
+    "false_positives": 1,
+    "false_negatives": 11,
+    "true_positives": 989
+  },
+  "top_features": [
+    {
+      "feature": "digit_ratio",
+      "importance": 0.1999
+    },
+    {
+      "feature": "number_of_digits",
+      "importance": 0.1595
+    },
+    {
+      "feature": "total_suspicious_keywords",
+      "importance": 0.0929
+    },
+    {
+      "feature": "domain_length",
+      "importance": 0.0807
+    },
+    {
+      "feature": "hostname_length",
+      "importance": 0.0766
+    },
+    {
+      "feature": "number_of_hyphens",
+      "importance": 0.0713
+    },
+    {
+      "feature": "url_length",
+      "importance": 0.0504
+    },
+    {
+      "feature": "hostname_entropy",
+      "importance": 0.0433
+    },
+    {
+      "feature": "path_length",
+      "importance": 0.0315
+    },
+    {
+      "feature": "unusual_tld",
+      "importance": 0.0295
+    },
+    {
+      "feature": "is_shortened_url",
+      "importance": 0.0225
+    },
+    {
+      "feature": "has_https",
+      "importance": 0.0176
+    },
+    {
+      "feature": "number_of_dots",
+      "importance": 0.0167
+    },
+    {
+      "feature": "number_of_equal_signs",
+      "importance": 0.0146
+    },
+    {
+      "feature": "query_length",
+      "importance": 0.0136
+    }
+  ],
+  "baseline_comparison": {
+    "model": "LogisticRegression",
+    "accuracy": 0.9955,
+    "precision": 0.9955,
+    "recall": 0.9955,
+    "f1_score": 0.9955,
+    "roc_auc": 0.9995,
+    "confusion_matrix": {
+      "matrix": [
+        [
+          1000,
+          0
+        ],
+        [
+          9,
+          991
+        ]
+      ],
+      "true_negatives": 1000,
+      "false_positives": 0,
+      "false_negatives": 9,
+      "true_positives": 991
+    }
+  }
+}

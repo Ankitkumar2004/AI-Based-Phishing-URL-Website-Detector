@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="CyberGuard SOC: Production AI-Based Phishing URL & Website Threat Intelligence Platform. Real-time inference, explainable security indicators, and heuristic scoring.">
+  <meta name="theme-color" content="#090d16">
+  <title>CyberGuard | AI Phishing URL Threat Intelligence Console</title>
+
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <script>
+    (function () {
+      try {
+        if (sessionStorage.getItem("cyberguard_auth_role")) {
+          document.documentElement.classList.add("auth-logged-in");
+        } else {
+          document.documentElement.classList.add("auth-logged-out");
+        }
+      } catch (e) {
+        document.documentElement.classList.add("auth-logged-out");
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- Authentication Portal -->
+  <div id="auth-portal" class="auth-portal">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <div class="auth-brand-title">
+          CyberGuard
+          <span class="brand-badge">SOC</span>
+        </div>
+        <div class="auth-sub">AI Threat Intelligence &amp; URL Defense Platform</div>
+        <div class="auth-form-title" id="auth-title-text">Sign In to Operations Console</div>
+        <div class="auth-form-desc" id="auth-desc-text">Enter your credentials or access via guest evaluation sandbox
+        </div>
+      </div>
+
+      <!-- Sign In Form (Order strictly preserved per specification) -->
+      <form id="login-form" class="auth-form" onsubmit="handleSignIn(event)">
+        <!-- 1. Email address -->
+        <div class="auth-field-group">
+          <label for="login-email" class="auth-label">Email Address</label>
+          <div class="auth-input-wrapper">
+            <svg class="auth-input-icon" viewBox="0 0 24 24">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+            <input type="email" id="login-email" class="auth-input" placeholder="analyst@cyberguard.soc"
+              autocomplete="email">
+          </div>
+        </div>
+
+        <!-- 2. Password -->
+        <div class="auth-field-group">
+          <label for="login-password" class="auth-label">Password</label>
+          <div class="auth-input-wrapper">
+            <svg class="auth-input-icon" viewBox="0 0 24 24">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <input type="password" id="login-password" class="auth-input" placeholder="••••••••"
+              autocomplete="current-password">
+            <button type="button" class="btn-toggle-pwd" id="btn-toggle-pwd" aria-label="Toggle password visibility"
+              onclick="togglePasswordVisibility()">
+              <svg id="eye-icon" viewBox="0 0 24 24">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Remember me / Forgot password -->
+        <div class="auth-options-row">
+          <label class="auth-checkbox-label">
+            <input type="checkbox" id="login-remember" class="auth-checkbox" checked>
+            <span>Remember me</span>
+          </label>
+          <a href="#" class="auth-link" id="link-forgot-pwd" onclick="handleForgotPassword(event)">Forgot password?</a>
+        </div>
+
+        <!-- 4. Sign In (primary blue button) -->
+        <button type="submit" id="btn-signin" class="btn-primary auth-submit-btn">
+          <span>Sign In</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+
+        <!-- 5. OR divider -->
+        <div class="auth-divider">
+          <span>OR</span>
+        </div>
+
+        <!-- 6. Continue as Guest (secondary button) -->
+        <button type="button" id="btn-guest-login" class="btn-guest-login" onclick="loginAsGuest()">
+          <svg class="guest-btn-icon" viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span>Continue as Guest</span>
+        </button>
+
+        <!-- 7. Don't have an account? Create account -->
+        <div class="auth-footer">
+          <span>Don't have an account?</span>
+          <a href="#" class="auth-link font-semibold" id="link-create-account"
+            onclick="toggleAuthForm('register', event)">Create account</a>
+        </div>
+      </form>
+
+      <!-- Registration Form (Toggled via "Create account") -->
+      <form id="register-form" class="auth-form" style="display: none;" onsubmit="handleRegister(event)">
+        <div class="auth-field-group">
+          <label for="reg-name" class="auth-label">Full Name</label>
+          <div class="auth-input-wrapper">
+            <svg class="auth-input-icon" viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <input type="text" id="reg-name" class="auth-input" placeholder="Security Analyst" autocomplete="name">
+          </div>
+        </div>
+
+        <div class="auth-field-group">
+          <label for="reg-email" class="auth-label">Work Email</label>
+          <div class="auth-input-wrapper">
+            <svg class="auth-input-icon" viewBox="0 0 24 24">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+            <input type="email" id="reg-email" class="auth-input" placeholder="analyst@soc-defense.com"
+              autocomplete="email">
+          </div>
+        </div>
+
+        <div class="auth-field-group">
+          <label for="reg-password" class="auth-label">Create Password</label>
+          <div class="auth-input-wrapper">
+            <svg class="auth-input-icon" viewBox="0 0 24 24">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <input type="password" id="reg-password" class="auth-input" placeholder="••••••••"
+              autocomplete="new-password">
+          </div>
+        </div>
+
+        <button type="submit" id="btn-register" class="btn-primary auth-submit-btn" style="margin-top: 6px;">
+          <span>Create Account</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+
+        <div class="auth-divider">
+          <span>OR</span>
+        </div>
+
+        <button type="button" class="btn-guest-login" onclick="loginAsGuest()">
+          <svg class="guest-btn-icon" viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span>Continue as Guest</span>
+        </button>
+
+        <div class="auth-footer">
+          <span>Already have an account?</span>
+          <a href="#" class="auth-link font-semibold" onclick="toggleAuthForm('login', event)">Sign In</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-container" id="app-container">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" aria-label="Main Navigation">
+      <div class="sidebar-header">
+        <div class="logo-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">
+            CyberGuard
+            <span class="brand-badge">SOC</span>
+          </div>
+          <div class="brand-sub">Threat Intelligence</div>
+        </div>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-section-title">Operations Console</li>
+        <li class="nav-item active" data-tab="overview" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+          Overview
+        </li>
+        <li class="nav-item" data-tab="scanner" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="22" y1="12" x2="18" y2="12" />
+            <line x1="6" y1="12" x2="2" y2="12" />
+            <line x1="12" y1="6" x2="12" y2="2" />
+            <line x1="12" y1="22" x2="12" y2="18" />
+          </svg>
+          URL Scanner
+        </li>
+        <li class="nav-item" data-tab="batch" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          Batch Scanner (CSV)
+        </li>
+        <li class="nav-item" data-tab="history" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          Scan History
+        </li>
+
+        <li class="nav-section-title" style="margin-top: 10px;">Intelligence & Modeling</li>
+        <li class="nav-item" data-tab="model-perf" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24">
+            <path d="M18 20V10" />
+            <path d="M12 20V4" />
+            <path d="M6 20v-6" />
+          </svg>
+          Model Performance
+        </li>
+        <li class="nav-item" data-tab="about" role="button" tabindex="0">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          About & Architecture
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="status-indicator">
+          <span class="status-dot" id="system-status-dot"></span>
+          <span id="system-status-text" style="color: #ffffff; font-weight: 600;">System Online</span>
+        </div>
+        <div class="sidebar-tech-meta">
+          <span>Classifier</span>
+          <span style="color: #fff;">RandomForest</span>
+        </div>
+        <div class="sidebar-tech-meta">
+          <span>Engine</span>
+          <span style="color: #fff;">Scikit-Learn 1.8</span>
+        </div>
+        <div class="sidebar-guest-exit" id="sidebar-guest-exit" style="display: none;">
+          <button type="button" class="btn-sidebar-exit-guest" onclick="exitGuestMode()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Exit Guest Mode
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" id="btn-toggle-sidebar" class="btn-sidebar-toggle" aria-label="Toggle Sidebar Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <div class="topbar-title" id="page-title">Security Operations Dashboard</div>
+        </div>
+        <div class="topbar-meta">
+          <!-- Guest Mode Badge -->
+          <span class="guest-mode-badge" id="guest-mode-badge" style="display: none;">
+            <span class="guest-badge-dot"></span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span>Guest Mode</span>
+          </span>
+
+          <span class="threat-chip" id="model-status-chip">Model: Loaded (Active)</span>
+          <span class="clock-badge" id="live-time-clock">--:--:-- UTC</span>
+
+          <!-- User Account Menu -->
+          <div class="user-menu-container" id="user-menu-container">
+            <button type="button" class="user-menu-btn" id="btn-user-menu" aria-label="User Account Menu"
+              aria-expanded="false" onclick="toggleUserDropdown(event)">
+              <div class="user-avatar" id="user-avatar">
+                <svg viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+              <span class="user-name" id="user-display-name">Guest Analyst</span>
+              <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            <div class="user-dropdown" id="user-dropdown" style="display: none;">
+              <div class="dropdown-header">
+                <div class="dropdown-user-role" id="dropdown-user-role">Guest Mode</div>
+                <div class="dropdown-user-email" id="dropdown-user-email">guest.sandbox@cyberguard.soc</div>
+                <div class="dropdown-badge-demo" id="dropdown-badge-demo">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                  Demo Sandbox Active
+                </div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item-meta">
+                <span>Access Role:</span>
+                <span class="badge badge-guest-access" id="dropdown-badge-access">Read &amp; Scan Only</span>
+              </div>
+              <div class="dropdown-item-meta">
+                <span>Inference Engine:</span>
+                <span
+                  style="color: var(--color-legit); font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;">Full
+                  Access</span>
+              </div>
+              <div class="dropdown-divider"></div>
+              <button type="button" class="dropdown-exit-btn" id="btn-exit-guest-mode" onclick="exitGuestMode()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span id="exit-btn-label">Exit Guest Mode</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- View Containers -->
+      <div class="content-body">
+
+        <!-- Guest Session Demo Notice Banner -->
+        <div class="guest-session-banner" id="guest-session-banner" style="display: none;">
+          <div class="guest-banner-left">
+            <div class="guest-banner-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <div>
+              <div class="guest-banner-title">Guest Evaluation Session Active</div>
+              <div class="guest-banner-desc">You are exploring CyberGuard in Guest Mode with sample audit telemetry.
+                Live URL scanning, heuristic explainability, and ML model benchmarking are fully enabled.</div>
+            </div>
+          </div>
+          <div class="guest-banner-right">
+            <span class="guest-tag">DEMO SANDBOX</span>
+            <button type="button" class="btn-exit-guest-inline" onclick="exitGuestMode()">Exit Guest Mode</button>
+          </div>
+        </div>
+
+        <!-- TAB 1: OVERVIEW -->
+        <section id="view-overview" class="tab-view active">
+          <!-- KPI Stats Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-blue"></div>
+              <div class="kpi-header-row">
+                <span class="kpi-label">Total URLs Scanned</span>
+                <div class="kpi-icon-pill" style="color: var(--color-cyan);">
+                  <svg viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-value" id="kpi-total-scans">0</div>
+              <div class="kpi-footer-sub">Telemetry feeds recorded in audit DB</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-red"></div>
+              <div class="kpi-header-row">
+                <span class="kpi-label">Phishing Detections</span>
+                <div class="kpi-icon-pill" style="color: var(--color-phish);">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-value" id="kpi-phishing-count" style="color: var(--color-phish);">0</div>
+              <div class="kpi-footer-sub">High-severity credential/harvester attacks</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-amber"></div>
+              <div class="kpi-header-row">
+                <span class="kpi-label">Suspicious Threats</span>
+                <div class="kpi-icon-pill" style="color: var(--color-suspicious);">
+                  <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-value" id="kpi-suspicious-count" style="color: var(--color-suspicious);">0</div>
+              <div class="kpi-footer-sub">Shorteners, anomalous TLDs & redirects</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-green"></div>
+              <div class="kpi-header-row">
+                <span class="kpi-label">Legitimate Sites</span>
+                <div class="kpi-icon-pill" style="color: var(--color-legit);">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-value" id="kpi-legitimate-count" style="color: var(--color-legit);">0</div>
+              <div class="kpi-footer-sub">Verified benign domains & certificates</div>
+            </div>
+          </div>
+
+          <!-- Charts Grid -->
+          <div class="analytics-grid">
+            <div class="chart-card">
+              <div class="card-title">
+                <span>Threat Ratio Distribution</span>
+                <span class="badge"
+                  style="background: rgba(255,255,255,0.05); color: var(--text-muted);">Real-time</span>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="overviewThreatChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="card-title">
+                <span>Threat Volume Breakdown</span>
+                <span class="badge"
+                  style="background: rgba(255,255,255,0.05); color: var(--text-muted);">Cumulative</span>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="overviewBarChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Scans Table Preview -->
+          <div class="table-container">
+            <div class="table-toolbar">
+              <div class="card-title" style="margin: 0;">Recent Telemetry Stream</div>
+              <button type="button" class="btn-secondary" onclick="navigateToTab('history')">
+                <span>View Full Audit Log</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
+              </button>
+            </div>
+            <table class="cyber-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Inspected URL</th>
+                  <th>Classification</th>
+                  <th>Risk Score</th>
+                  <th>Confidence</th>
+                  <th>Detection Time</th>
+                  <th>Scan Timestamp</th>
+                </tr>
+              </thead>
+              <tbody id="overview-recent-tbody">
+                <tr>
+                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 32px;">No scan telemetry
+                    recorded yet. Inspect a URL to populate.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TAB 2: URL SCANNER -->
+        <section id="view-scanner" class="tab-view">
+          <div class="scan-hero">
+            <div class="scan-title">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-cyan)" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="22" y1="12" x2="18" y2="12" />
+                <line x1="6" y1="12" x2="2" y2="12" />
+                <line x1="12" y1="6" x2="12" y2="2" />
+                <line x1="12" y1="22" x2="12" y2="18" />
+              </svg>
+              Inspect Untrusted Target URL
+            </div>
+            <div class="scan-desc">
+              Analyzes URL syntax, hostname entropy, domain structure, and credential-harvesting patterns using trained
+              Random Forest heuristics. Safe string-only evaluation without HTTP execution.
+            </div>
+
+            <form id="url-scan-form" class="scan-form" onsubmit="handleSingleScan(event)">
+              <div class="scan-input-wrapper">
+                <span class="scan-input-prefix">TARGET_URL</span>
+                <input type="text" id="scan-url-input" class="scan-input"
+                  placeholder="e.g. https://secure-bank-login.xyz/update-account" required autocomplete="off"
+                  spellcheck="false">
+              </div>
+              <button type="submit" id="btn-scan-submit" class="btn-primary">
+                <span id="btn-scan-text">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  SCAN URL
+                </span>
+                <span id="btn-scan-spinner" class="spinner" style="display: none;"></span>
+              </button>
+            </form>
+
+            <!-- Quick Presets -->
+            <div class="quick-presets">
+              <span class="preset-label">Attack Presets:</span>
+              <button type="button" class="preset-chip"
+                onclick="loadPreset('https://www.wikipedia.org/wiki/Computer_security')">
+                <span style="color: var(--color-legit); font-weight: 700;">âœ“</span> Wikipedia (Legit)
+              </button>
+              <button type="button" class="preset-chip" onclick="loadPreset('https://github.com/torvalds/linux')">
+                <span style="color: var(--color-legit); font-weight: 700;">âœ“</span> GitHub (Legit)
+              </button>
+              <button type="button" class="preset-chip"
+                onclick="loadPreset('http://192.168.1.10:8080/paypal-update/login.php?session=928472')">
+                <span style="color: var(--color-phish); font-weight: 700;">âš </span> Raw IP Host (Phishing)
+              </button>
+              <button type="button" class="preset-chip"
+                onclick="loadPreset('https://login.appleid-support-team.xyz/verify.php?token=auth99')">
+                <span style="color: var(--color-phish); font-weight: 700;">âš </span> Brand Subdomain (Phishing)
+              </button>
+              <button type="button" class="preset-chip"
+                onclick="loadPreset('https://accounts.google.com-support-team.online/signin')">
+                <span style="color: var(--color-phish); font-weight: 700;">âš </span> TLD Abuse (Phishing)
+              </button>
+              <button type="button" class="preset-chip" onclick="loadPreset('https://bit.ly/secure-account-login')">
+                <span style="color: var(--color-suspicious); font-weight: 700;">âš </span> Shortened URL (Suspicious)
+              </button>
+            </div>
+          </div>
+
+          <!-- Scan Result Card -->
+          <div id="scan-result-card" class="result-card">
+            <div class="result-header">
+              <div class="threat-verdict">
+                <div id="result-threat-badge" class="threat-badge threat-phishing">
+                  <span id="result-threat-text">PHISHING DETECTED</span>
+                </div>
+                <div>
+                  <div
+                    style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.06em;">
+                    Inspected Target</div>
+                  <div id="result-url-text" class="scanned-url-display">https://...</div>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div
+                  style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.06em;">
+                  Threat Level</div>
+                <div id="result-threat-level"
+                  style="font-size: 1.35rem; font-weight: 800; font-family: var(--font-mono); color: #ffffff;">HIGH
+                </div>
+              </div>
+            </div>
+
+            <!-- Score Stats & Animated Gauge -->
+            <div class="score-overview-grid">
+              <div class="score-box">
+                <div class="score-box-gauge">
+                  <div class="risk-gauge-wrapper">
+                    <svg viewBox="0 0 100 100">
+                      <circle class="gauge-track" cx="50" cy="50" r="45"></circle>
+                      <circle id="risk-gauge-meter" class="gauge-progress" cx="50" cy="50" r="45"></circle>
+                    </svg>
+                    <div class="gauge-inner-val" id="result-risk-score-num">0</div>
+                  </div>
+                  <div>
+                    <div class="score-box-title">Model-Based Risk Score</div>
+                    <div id="result-risk-score" class="score-box-val" style="color: var(--color-phish);">0 / 100</div>
+                    <div style="font-size: 0.73rem; color: var(--text-muted); margin-top: 4px;">Heuristic + Calibrated
+                      Posterior</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="score-box">
+                <div class="score-box-title">Model Confidence</div>
+                <div id="result-confidence" class="score-box-val" style="color: var(--color-cyan);">0.0%</div>
+                <div style="font-size: 0.73rem; color: var(--text-muted); margin-top: 4px;">Random Forest Decision
+                  Margin</div>
+              </div>
+
+              <div class="score-box">
+                <div class="score-box-title">Detection Time</div>
+                <div id="result-detection-time" class="score-box-val" style="color: var(--color-legit);">0.0 ms</div>
+                <div style="font-size: 0.73rem; color: var(--text-muted); margin-top: 4px;">Sub-millisecond Feature
+                  Engine</div>
+              </div>
+            </div>
+
+            <!-- Explainable Indicators -->
+            <div class="indicators-container">
+              <div class="section-subtitle">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-cyan)"
+                  stroke-width="2.5">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                Explainable Security Indicators & Heuristics
+              </div>
+              <div id="result-indicators-list" class="indicator-list">
+                <!-- Populated via JavaScript -->
+              </div>
+            </div>
+
+            <!-- Extracted Feature Summary Grid -->
+            <div class="feature-preview">
+              <div class="section-subtitle" style="font-size: 0.84rem; margin-bottom: 12px;">Extracted Feature Matrix
+                Snapshot</div>
+              <div id="result-features-grid" class="feature-grid-specs">
+                <!-- Populated via JS -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: BATCH SCANNER -->
+        <section id="view-batch" class="tab-view">
+          <div class="info-card">
+            <h3>Enterprise CSV Batch Threat Pipeline</h3>
+            <p>Upload a CSV file containing an untrusted URL list for bulk threat assessment. Enforces strict input
+              validation, row caps, and parallelized scikit-learn feature transforms.</p>
+            <div style="display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap;">
+              <button type="button" class="btn-secondary" onclick="downloadSampleCSV()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download Sample Benchmark CSV
+              </button>
+              <button type="button" id="btn-export-batch" class="btn-secondary" style="display: none;"
+                onclick="exportBatchCSV()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Export Scanned Results (.CSV)
+              </button>
+            </div>
+          </div>
+
+          <!-- Dropzone -->
+          <div class="dropzone" id="csv-dropzone" onclick="document.getElementById('csv-file-input').click()">
+            <input type="file" id="csv-file-input" accept=".csv" style="display: none;"
+              onchange="handleFileSelect(event)">
+            <svg class="dropzone-icon" viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <div class="dropzone-title" id="dropzone-prompt">Drag & Drop CSV file here, or click to browse</div>
+            <div class="dropzone-desc">Accepts standard .CSV files up to 5MB with header column 'url' (Up to 1,000 URLs
+              per batch)</div>
+          </div>
+
+          <div id="batch-progress" style="display: none; margin-bottom: 24px; text-align: center;">
+            <div class="spinner" style="width: 28px; height: 28px; margin-bottom: 10px;"></div>
+            <div style="font-size: 0.92rem; color: var(--color-cyan); font-weight: 600;">Executing Feature Extraction &
+              Machine Learning Batch Inference...</div>
+          </div>
+
+          <!-- Batch Summary KPI Cards -->
+          <div id="batch-summary-kpis" class="kpi-grid" style="display: none;">
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-blue"></div>
+              <div class="kpi-label">Processed URLs</div>
+              <div class="kpi-value" id="batch-kpi-total">0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-red"></div>
+              <div class="kpi-label">Phishing Found</div>
+              <div class="kpi-value" id="batch-kpi-phish" style="color: var(--color-phish);">0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-amber"></div>
+              <div class="kpi-label">Suspicious Found</div>
+              <div class="kpi-value" id="batch-kpi-susp" style="color: var(--color-suspicious);">0</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-green"></div>
+              <div class="kpi-label">Legitimate Found</div>
+              <div class="kpi-value" id="batch-kpi-legit" style="color: var(--color-legit);">0</div>
+            </div>
+          </div>
+
+          <!-- Batch Results Table -->
+          <div class="table-container" id="batch-results-container" style="display: none;">
+            <div class="table-toolbar">
+              <div class="card-title" style="margin: 0;">Batch Scan Assessment Results</div>
+            </div>
+            <table class="cyber-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Target URL</th>
+                  <th>Classification</th>
+                  <th>Risk Score</th>
+                  <th>Confidence</th>
+                  <th>Threat Level</th>
+                </tr>
+              </thead>
+              <tbody id="batch-results-tbody">
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TAB 4: SCAN HISTORY -->
+        <section id="view-history" class="tab-view">
+          <div class="table-container">
+            <div class="table-toolbar">
+              <div class="search-input-wrapper">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input type="text" id="history-search" class="search-input"
+                  placeholder="Search audited URL or domain..." oninput="debounceHistorySearch()">
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <select id="history-filter" class="filter-select" onchange="loadScanHistory()">
+                  <option value="all">All Verdicts</option>
+                  <option value="Phishing">Phishing</option>
+                  <option value="Suspicious">Suspicious</option>
+                  <option value="Legitimate">Legitimate</option>
+                </select>
+                <button type="button" class="btn-secondary" onclick="loadScanHistory()" title="Refresh database logs">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="23 4 23 10 17 10" />
+                    <polyline points="1 20 1 14 7 14" />
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                  </svg>
+                  <span>Refresh</span>
+                </button>
+              </div>
+            </div>
+
+            <table class="cyber-table">
+              <thead>
+                <tr>
+                  <th>Scan ID</th>
+                  <th>Target URL</th>
+                  <th>Verdict</th>
+                  <th>Risk Score</th>
+                  <th>Confidence</th>
+                  <th>Threat Level</th>
+                  <th>Execution Time</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-tbody">
+                <tr>
+                  <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 32px;">Loading audit
+                    logs...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TAB 5: MODEL PERFORMANCE -->
+        <section id="view-model-perf" class="tab-view">
+          <!-- Model Config Card -->
+          <div class="info-card">
+            <h3>Machine Learning Model Architecture & Validation</h3>
+            <p>Trained using a stratified 80/20 partition on a curated ground truth benchmark of 10,000 URLs (Tranco Top
+              Sites + Live OpenPhish & PhishTank feeds). Scaler and feature pipelines are strictly isolated to eliminate
+              data leakage.</p>
+            <div
+              style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-cyan);">
+              <div>Model: <strong id="perf-model-name" style="color: #fff;">RandomForestClassifier</strong></div>
+              <div>Training Samples: <strong id="perf-train-samples" style="color: #fff;">8,000</strong></div>
+              <div>Test Samples: <strong id="perf-test-samples" style="color: #fff;">2,000</strong></div>
+              <div>Total Features: <strong id="perf-total-features" style="color: #fff;">45</strong></div>
+            </div>
+          </div>
+
+          <!-- Academic Performance Metrics Grid -->
+          <div class="kpi-grid" style="grid-template-columns: repeat(5, 1fr);">
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-blue"></div>
+              <div class="kpi-label">Overall Accuracy</div>
+              <div class="kpi-value" id="perf-acc">--%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-green"></div>
+              <div class="kpi-label">Weighted Precision</div>
+              <div class="kpi-value" id="perf-prec">--%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-amber"></div>
+              <div class="kpi-label">Weighted Recall</div>
+              <div class="kpi-value" id="perf-rec">--%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-blue"></div>
+              <div class="kpi-label">F1-Score</div>
+              <div class="kpi-value" id="perf-f1">--</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-accent-bar accent-green"></div>
+              <div class="kpi-label">ROC-AUC Score</div>
+              <div class="kpi-value" id="perf-auc">--</div>
+            </div>
+          </div>
+
+          <!-- Confusion Matrix & Feature Importance Grid -->
+          <div class="analytics-grid">
+            <div class="confusion-matrix-box">
+              <div class="card-title">Holdout Confusion Matrix (2,000 Test URLs)</div>
+              <div class="cm-grid">
+                <div class="cm-cell cm-tn">
+                  <div class="cm-cell-title">True Negatives (Legit &rarr; Legit)</div>
+                  <div class="cm-cell-val" id="cm-tn-val">--</div>
+                </div>
+                <div class="cm-cell cm-fp">
+                  <div class="cm-cell-title">False Positives (Legit &rarr; Phish)</div>
+                  <div class="cm-cell-val" id="cm-fp-val">--</div>
+                </div>
+                <div class="cm-cell cm-fn">
+                  <div class="cm-cell-title">False Negatives (Phish &rarr; Legit)</div>
+                  <div class="cm-cell-val" id="cm-fn-val">--</div>
+                </div>
+                <div class="cm-cell cm-tp">
+                  <div class="cm-cell-title">True Positives (Phish &rarr; Phish)</div>
+                  <div class="cm-cell-val" id="cm-tp-val">--</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="card-title">Top Influential Decision Features (Gini Importance)</div>
+              <div class="chart-wrapper">
+                <canvas id="featureImportanceChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Baseline Model Comparison Table -->
+          <div class="table-container">
+            <div class="table-toolbar">
+              <div class="card-title" style="margin: 0;">Algorithm Comparison: Baseline vs Primary Model</div>
+            </div>
+            <table class="cyber-table">
+              <thead>
+                <tr>
+                  <th>Algorithm</th>
+                  <th>Type</th>
+                  <th>Accuracy</th>
+                  <th>Precision</th>
+                  <th>Recall</th>
+                  <th>F1-Score</th>
+                  <th>ROC-AUC</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="model-comparison-tbody">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TAB 6: ABOUT & ARCHITECTURE -->
+        <section id="view-about" class="tab-view">
+          <div class="info-card">
+            <h3>Project Summary & Objectives</h3>
+            <p><strong>Title:</strong> CyberGuard AI-Based Phishing URL & Website Detector</p>
+            <p><strong>Goal:</strong> Provide security analysts and enterprise environments with instantaneous,
+              explainable threat assessments before untrusted links are clicked in emails, SMS, messaging platforms, or
+              web applications.</p>
+            <p><strong>Core Problem:</strong> Phishing attacks remain the leading root cause of credential theft,
+              session hijacking, and ransomware initial access. Attackers leverage deceptive subdomains, raw IP hosting,
+              URL shorteners, punycode spoofing, and social engineering keywords to bypass traditional static
+              blacklists.</p>
+          </div>
+
+          <!-- Architecture SVG Flow -->
+          <div class="arch-card">
+            <div class="card-title">Interactive System Architecture Pipeline</div>
+            <div class="arch-svg-wrapper">
+              <svg class="arch-svg" viewBox="0 0 920 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Nodes -->
+                <!-- 1. Input -->
+                <rect x="20" y="30" width="150" height="70" rx="10" fill="#100C1F" stroke="#4C7DFF"
+                  stroke-width="1.5" />
+                <text x="95" y="60" fill="#ffffff" font-family="Inter" font-weight="700" font-size="13"
+                  text-anchor="middle">USER INTERACTION</text>
+                <text x="95" y="80" fill="#817993" font-family="JetBrains Mono" font-size="10.5"
+                  text-anchor="middle">Single / Batch CSV</text>
+
+                <!-- Arrow 1 -->
+                <path d="M170 65 L210 65" stroke="#4C7DFF" stroke-width="2" stroke-dasharray="4 4" />
+                <polygon points="210,65 204,61 204,69" fill="#4C7DFF" />
+
+                <!-- 2. Security Layer -->
+                <rect x="215" y="30" width="165" height="70" rx="10" fill="#100C1F" stroke="#8B3DFF"
+                  stroke-width="1.5" />
+                <text x="297" y="60" fill="#ffffff" font-family="Inter" font-weight="700" font-size="13"
+                  text-anchor="middle">REST API & VALIDATION</text>
+                <text x="297" y="80" fill="#817993" font-family="JetBrains Mono" font-size="10"
+                  text-anchor="middle">Zero-Network / SSRF Safe</text>
+
+                <!-- Arrow 2 -->
+                <path d="M380 65 L420 65" stroke="#8B3DFF" stroke-width="2" stroke-dasharray="4 4" />
+                <polygon points="420,65 414,61 414,69" fill="#8B3DFF" />
+
+                <!-- 3. Feature Extractor -->
+                <rect x="425" y="30" width="170" height="70" rx="10" fill="#100C1F" stroke="#22C55E"
+                  stroke-width="1.5" />
+                <text x="510" y="60" fill="#ffffff" font-family="Inter" font-weight="700" font-size="13"
+                  text-anchor="middle">FEATURE ENGINE</text>
+                <text x="510" y="80" fill="#817993" font-family="JetBrains Mono" font-size="10" text-anchor="middle">45
+                  Structural/Entropy Feats</text>
+
+                <!-- Arrow 3 -->
+                <path d="M595 65 L635 65" stroke="#22C55E" stroke-width="2" stroke-dasharray="4 4" />
+                <polygon points="635,65 629,61 629,69" fill="#22C55E" />
+
+                <!-- 4. ML Engine -->
+                <rect x="640" y="30" width="160" height="70" rx="10" fill="#100C1F" stroke="#B04CFF"
+                  stroke-width="1.5" />
+                <text x="720" y="60" fill="#ffffff" font-family="Inter" font-weight="700" font-size="13"
+                  text-anchor="middle">RANDOM FOREST ML</text>
+                <text x="720" y="80" fill="#817993" font-family="JetBrains Mono" font-size="10"
+                  text-anchor="middle">Inference & Probabilities</text>
+
+                <!-- Downward Arrow from ML Engine to Scoring -->
+                <path d="M720 100 L720 160" stroke="#B04CFF" stroke-width="2" stroke-dasharray="4 4" />
+                <polygon points="720,160 716,154 724,154" fill="#B04CFF" />
+
+                <!-- 5. Risk Scoring -->
+                <rect x="620" y="165" width="200" height="75" rx="10" fill="#100C1F" stroke="#EF4444"
+                  stroke-width="1.5" />
+                <text x="720" y="195" fill="#ffffff" font-family="Inter" font-weight="700" font-size="13"
+                  text-anchor="middle">RISK SCORING ENGINE</text>
+                <text x="720" y="215" fill="#817993" font-family="JetBrains Mono" font-size="10"
+                  text-anchor="middle">Calibrated Heuristics (0-100)</text>
+
+                <!-- Left Arrow from Scoring to Persistence -->
+                <path d="M620 202 L480 202" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 4" />
+                <polygon points="480,202 486,198 486,206" fill="#ef4444" />
+
+                <!-- 6. Persistence & UI -->
+                <rect x="290" y="165" width="185" height="75" rx="10" fill="#100C1F" stroke="#4C7DFF"
+                  stroke-width="1.5" />
+                <text x="382" y="195" fill="#ffffff" font-family="Inter" font-weight="700" font-size="13"
+                  text-anchor="middle">SQLITE AUDIT & UI</text>
+                <text x="382" y="215" fill="#817993" font-family="JetBrains Mono" font-size="10"
+                  text-anchor="middle">SOC Dark Console Display</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Security Principles Cards -->
+          <div class="principles-grid">
+            <div class="principle-box">
+              <div class="principle-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
+              <div class="principle-title">Zero-Network Execution Rule</div>
+              <div class="principle-desc">
+                URLs are parsed strictly as offline character vectors without making external HTTP requests, resolving
+                remote DOMs, or executing client JavaScript, eliminating SSRF and drive-by malware vectors.
+              </div>
+            </div>
+
+            <div class="principle-box">
+              <div class="principle-icon">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+              </div>
+              <div class="principle-title">Transparent Explainability</div>
+              <div class="principle-desc">
+                Rather than treating the classifier as a black box, the inference engine generates human-readable
+                security indicators detailing why a threat score was assigned.
+              </div>
+            </div>
+
+            <div class="principle-box">
+              <div class="principle-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              </div>
+              <div class="principle-title">Academic Rigor & Benchmark</div>
+              <div class="principle-desc">
+                Trained on a balanced 10,000-sample corpus with 80/20 train/test stratified isolation. Preprocessing
+                scalers are strictly fitted on training partitions to prevent data leakage.
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Tech Stack -->
+          <div class="info-card" style="margin-top: 24px;">
+            <h3>Enterprise Tech Stack</h3>
+            <div class="tech-stack-row">
+              <span class="tech-badge">Python 3.11</span>
+              <span class="tech-badge">Flask 3.1</span>
+              <span class="tech-badge">Scikit-Learn 1.8</span>
+              <span class="tech-badge">Random Forest (100 Trees)</span>
+              <span class="tech-badge">SQLite3 Persistence</span>
+              <span class="tech-badge">Docker Containerized</span>
+              <span class="tech-badge">Chart.js Visualizations</span>
+              <span class="tech-badge">Vanilla CSS/JS</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="/static/js/chart.min.js"></script>
+  <script src="/static/js/dashboard.js"></script>
+</body>
+
+</html>
