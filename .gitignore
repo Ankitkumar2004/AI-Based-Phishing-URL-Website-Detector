@@ -1,25 +1,58 @@
-# Python bytecode & cache
+# Python bytecode and cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .pytest_cache/
 
-# Virtual Environments
+# Virtual environments
 venv/
 env/
 ENV/
 .venv/
 
-# Environment Variables
+# Environment variables and secrets
 .env
+.env.*
+!.env.example
 
-# Data & database runtime files
+# Database files
+database/*.db
 *.db-journal
-data/processed/*.csv
+*.sqlite
+*.sqlite3
 
-# Operating System files
+# Processed/generated data
+data/processed/
+*.csv.tmp
+
+# Python tooling
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating system files
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Logs
 *.log
+
+# Build/package files
+build/
+dist/
+*.egg-info/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~
