@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 *.so
 .pytest_cache/
+.gitignore
+.env.example
 
 # Virtual environments
 venv/
@@ -14,7 +16,7 @@ ENV/
 # Environment variables and secrets
 .env
 .env.*
-!.env.example
+.env.example
 
 # Database files
 database/*.db
